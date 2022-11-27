@@ -1,0 +1,8 @@
+dummy: dummy
+instances: 4
+  name: a
+  example_list_1: [a, b, c]
+  example_list_2:
+    - a
+    - b
+    - c     # dup a
