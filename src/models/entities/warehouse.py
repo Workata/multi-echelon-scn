@@ -1,3 +1,5 @@
+from models.entities.base import BaseEntity
 
-class Warehouse():
+
+class Warehouse(BaseEntity):
     pass

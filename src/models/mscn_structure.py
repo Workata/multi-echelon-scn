@@ -1,11 +1,11 @@
-from typing import TypedDict, List
+from typing import NamedTuple, List
 from . import (
     Factory, Warehouse, Shop, Supplier, SupplierFactoryTransaction,
     FactoryWarehouseTransaction, WarehouseShopTransaction
 )
 
 
-class Specimen(TypedDict):
+class MscnStructure(NamedTuple):
 
     suppliers: List[Supplier]
     factories: List[Factory]

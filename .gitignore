@@ -1,4 +1,6 @@
 instances/*.txt
+*.yaml
+!config_example.yaml
 notes.txt
 
 # Byte-compiled / optimized / DLL files
