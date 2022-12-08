@@ -26,7 +26,6 @@ class InstanceLoader:
         suppliers = self._create_suppliers(instance_data)
         print(suppliers)
 
-        print("Dupa \n")
         factory_warehouse_transactions = self._create_factory_to_warehouse_transactions(instance_data, factories, warehouses)
         print(factory_warehouse_transactions)
         supplier_factory_transactions = self._create_supplier_to_factory_transactions(instance_data, suppliers, factories)
@@ -40,11 +39,10 @@ class InstanceLoader:
             warehouses=warehouses,
             shops=shops,
 
-            supplier_factory_transactions=factory_warehouse_transactions,
+            supplier_factory_transactions=supplier_factory_transactions,
             factory_warehouse_transactions=factory_warehouse_transactions,
             warehouse_shop_transactions=warehouse_shop_transactions
         )
-        print("Dupa \n")
         print(mscn)
         return mscn
 
