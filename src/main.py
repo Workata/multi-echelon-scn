@@ -1,5 +1,5 @@
 from loaders import ConfigLoader, InstanceLoader
-from mscn.solution_generator import SolutionGenerator
+from mscn import ProfitCalculator, SolutionGenerator
 
 CONFIG_FILE_PATH = './config.yaml'
 
@@ -14,6 +14,10 @@ print(random_solution)
 print(len(random_solution))
 # 2*3 + 3*3 + 3*5 - example1.yaml
 assert len(random_solution) == 30
+
+
+profit_calculator = ProfitCalculator(mscn_structure, solution=random_solution)
+profit_calculator.calculate()
 
 # print(mscn_structure)
 # print("--------\n\n")

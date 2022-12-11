@@ -33,9 +33,9 @@ class SolutionGenerator:
 
     # * suppliers ---> factories (partial solution)
     def _get_suppliers_to_factories_paths(self) -> Tuple[List[float], List[float]]:
-        suppliers_to_factories_paths: List[float] = [0.0 for _ in range(len(self._mscn.suppliers)*len(self._mscn.factories))]
-        suppliers_current_capacity: List[float] = [0.0 for _ in range(len(self._mscn.suppliers))]
-        delivered_to_factories: List[float] = [0.0 for _ in range(len(self._mscn.factories))]
+        suppliers_to_factories_paths: List[float] = [0.0 for _ in range(self._mscn.supp_fact_paths_count)]
+        suppliers_current_capacity: List[float] = [0.0 for _ in range(self._mscn.suppliers_count)]
+        delivered_to_factories: List[float] = [0.0 for _ in range(self._mscn.factories_count)]
 
         suppliers = self._mscn.suppliers.copy()
         shuffle(suppliers)
@@ -61,9 +61,9 @@ class SolutionGenerator:
         return suppliers_to_factories_paths, delivered_to_factories
 
     def _get_factories_to_warehouses_paths(self, delivered_to_factories: List[float]) -> Tuple[List[float], List[float]]:
-        factories_to_warehouses_paths: List[float] = [0.0 for _ in range(len(self._mscn.factories)*len(self._mscn.warehouses))]
-        factories_current_capacity: List[float] = [0.0 for _ in range(len(self._mscn.factories))]
-        delivered_to_warehouses: List[float] = [0.0 for _ in range(len(self._mscn.warehouses))]
+        factories_to_warehouses_paths: List[float] = [0.0 for _ in range(self._mscn.fact_wareh_paths_count)]
+        factories_current_capacity: List[float] = [0.0 for _ in range(self._mscn.factories_count)]
+        delivered_to_warehouses: List[float] = [0.0 for _ in range(self._mscn.warehouses_count)]
 
         factories = self._mscn.factories.copy()
         shuffle(factories)
@@ -92,9 +92,9 @@ class SolutionGenerator:
         return factories_to_warehouses_paths, delivered_to_warehouses
 
     def _get_warehouses_to_shops_paths(self, delivered_to_warehouses: List[float]) -> List[float]:
-        warehouses_to_shops_paths: List[float] = [0.0 for _ in range(len(self._mscn.warehouses)*len(self._mscn.shops))]
-        warhouses_current_capacity: List[float] = [0.0 for _ in range(len(self._mscn.warehouses))]
-        shops_current_capacity: List[float] = [0.0 for _ in range(len(self._mscn.shops))]
+        warehouses_to_shops_paths: List[float] = [0.0 for _ in range(self._mscn.wareh_shop_paths_count)]
+        warhouses_current_capacity: List[float] = [0.0 for _ in range(self._mscn.warehouses_count)]
+        shops_current_capacity: List[float] = [0.0 for _ in range(self._mscn.shops_count)]
 
         warehouses = self._mscn.warehouses.copy()
         shuffle(warehouses)

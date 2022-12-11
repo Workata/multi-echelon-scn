@@ -1,2 +1,3 @@
 from .solution_generator import SolutionGenerator
-from .income_calculator import IncomeCalculator
+from .profit_calculator import ProfitCalculator
+from .constraints_validator import ConstraintsValidator
