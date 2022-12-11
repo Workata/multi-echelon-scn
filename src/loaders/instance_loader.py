@@ -18,20 +18,13 @@ class InstanceLoader:
         instance_data = YamlReader.read(file_path=instance_file_path)
 
         shops = self._create_shops(instance_data)
-        print(shops)
         factories = self._create_factories(instance_data)
-        print(factories)
         warehouses = self._create_warehouses(instance_data)
-        print(warehouses)
         suppliers = self._create_suppliers(instance_data)
-        print(suppliers)
 
         factory_warehouse_transactions = self._create_factory_to_warehouse_transactions(instance_data, factories, warehouses)
-        print(factory_warehouse_transactions)
         supplier_factory_transactions = self._create_supplier_to_factory_transactions(instance_data, suppliers, factories)
-        print(supplier_factory_transactions)
         warehouse_shop_transactions = self._create_warehouse_to_shop_transactions(instance_data, warehouses, shops)
-        print(warehouse_shop_transactions)
 
         mscn = MscnStructure(
             suppliers=suppliers,
@@ -43,7 +36,6 @@ class InstanceLoader:
             factory_warehouse_transactions=factory_warehouse_transactions,
             warehouse_shop_transactions=warehouse_shop_transactions
         )
-        print(mscn)
         return mscn
 
     # TODO these methods (create_someting) are pretty similar
