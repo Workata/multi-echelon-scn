@@ -7,6 +7,8 @@ class ProfitCalculator:
     """
     - Profit is the positive amount remaining after subtracting expenses incurred from the revenues
     - Income is the earnings gained from the provision of services or goods
+
+    ! startup cost === contract cost
     """
 
     def __init__(self, mscn_structure: MscnStructure, solution: List[float]):
@@ -16,10 +18,10 @@ class ProfitCalculator:
 
     def calculate(self) -> float:
         tranportation_costs = self._calculate_transportation_costs()
-        contract_costs = self._calculate_contract_costs()
+        startup_costs = self._calculate_startup_costs()
         income = self._calculate_income()
-        profit = round(income - contract_costs - tranportation_costs, 2)
-        print(f"PROFIT $$$: {profit}")
+        profit = round(income - startup_costs - tranportation_costs, 2)
+        print(f"Total profit: $$$ {profit} $$$")
         return profit
 
     def _calculate_partial_trans_cost(self, paths, num_of_entities_from, num_of_entities_to, transactions):
@@ -53,13 +55,47 @@ class ProfitCalculator:
             transactions=self._mscn.warehouse_shop_transactions
         )
         total_transportation_cost = round(supp_to_fact_trans_cost + fact_to_wareh_trans_cost + wareh_to_shop_trans_cost, 2)
-        print(f"Total trans cost: {total_transportation_cost}")
+        print(f"Total transportation costs cost: {total_transportation_cost}")
         return total_transportation_cost
 
-    def _calculate_contract_costs(self) -> float:
-        return 0.0
+    def _calculate_partial_startup_costs(self, paths, num_of_entities_from, entities_from, num_of_entities_to):
+        startup_costs = 0.0
+        for from_idx in range(num_of_entities_from):
+            for to_idx in range(num_of_entities_to):
+                idx = from_idx*num_of_entities_from + to_idx
+                if paths[idx] > 0:
+                    startup_costs += entities_from[from_idx].startup_cost
+                    break
+        return startup_costs
+
+    def _calculate_startup_costs(self) -> float:
+        """K_u"""
+        suppliers_startup_costs = self._calculate_partial_startup_costs(
+            paths=self._solution_splitter.get_suppliers_to_factories_partial_solution(),
+            num_of_entities_from=self._mscn.suppliers_count,
+            num_of_entities_to=self._mscn.factories_count,
+            entities_from=self._mscn.suppliers
+        )
+
+        factories_startup_costs = self._calculate_partial_startup_costs(
+            paths=self._solution_splitter.get_factories_to_warehouses_partial_solution(),
+            num_of_entities_from=self._mscn.factories_count,
+            num_of_entities_to=self._mscn.warehouses_count,
+            entities_from=self._mscn.factories
+        )
+
+        warehosues_startup_costs = self._calculate_partial_startup_costs(
+            paths=self._solution_splitter.get_warehouses_to_shops_partial_solution(),
+            num_of_entities_from=self._mscn.warehouses_count,
+            num_of_entities_to=self._mscn.shops_count,
+            entities_from=self._mscn.warehouses
+        )
+        total_startup_costs = round(suppliers_startup_costs + factories_startup_costs + warehosues_startup_costs, 2)
+        print(f"Total startup costs: {total_startup_costs}")
+        return total_startup_costs
 
     def _calculate_income(self) -> float:
+        """P"""
         wareh_shops_paths=self._solution_splitter.get_warehouses_to_shops_partial_solution()
         shops_amount: List[float] = [0.0 for _ in range(self._mscn.shops_count)]
 

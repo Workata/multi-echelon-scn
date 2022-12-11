@@ -10,8 +10,8 @@ config = ConfigLoader.load(CONFIG_FILE_PATH)
 insance_loader = InstanceLoader()
 mscn_structure = insance_loader.load(config['instance_file_path'])
 random_solution = SolutionGenerator(mscn_structure = mscn_structure).generate()
-print(random_solution)
-print(len(random_solution))
+print(f"Random solution: {random_solution}")
+# print(len(random_solution))
 # 2*3 + 3*3 + 3*5 - example1.yaml
 assert len(random_solution) == 30
 
