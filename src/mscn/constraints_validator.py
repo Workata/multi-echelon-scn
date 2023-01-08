@@ -1,25 +1,11 @@
 from models import MscnStructure
 from typing import List
 from .solution_splitter import SolutionSplitter
+from .exceptions import (
+    SupplierCapacityExceeded, FactoryCapacityExceeded, WarehouseCapacityExceeded, ShopCapacityExceeded,
+    FactoryOutcomeGreaterThanIncome, WarehouseOutcomeGreaterThanIncome
+)
 
-
-class SupplierCapacityExceeded(Exception):
-    pass
-
-class FactoryCapacityExceeded(Exception):
-    pass
-
-class WarehouseCapacityExceeded(Exception):
-    pass
-
-class ShopCapacityExceeded(Exception):  # capacity for shop = market demand
-    pass
-
-class FactoryOutcomeGreaterThanIncome(Exception):
-    pass
-
-class WarehouseOutcomeGreaterThanIncome(Exception):
-    pass
 
 InvalidSolutionExceptions = (
     SupplierCapacityExceeded, FactoryCapacityExceeded, WarehouseCapacityExceeded, ShopCapacityExceeded,
@@ -36,7 +22,7 @@ class ConstraintsValidator:
         self._solution_splitter = SolutionSplitter(mscn_structure)
 
 
-    def is_valid(self, solution: List[float]) -> bool:
+    def is_valid(self, solution: List[float], raise_err: bool = False) -> bool:
 
         try:
             # * supplier ---> factory
@@ -47,8 +33,10 @@ class ConstraintsValidator:
 
             # * warehouse ---> shop
             self._check_warehouses_to_shops_paths(solution, delivered_to_warehouses)
-        except InvalidSolutionExceptions:
-            print("[INFO] Given solution doesn't meet the restrictions!")
+        except InvalidSolutionExceptions as err:
+            print(f"[INFO] Given solution doesn't meet the restrictions! {err}")
+            if raise_err:
+                raise
             return False
 
         print("[INFO] Given solution is valid!")
@@ -68,7 +56,7 @@ class ConstraintsValidator:
 
                 # * check constraints
                 if suppliers_current_capacity[supp_idx] + suppliers_to_factories_paths[path_idx] > supp.max_capacity:
-                    raise SupplierCapacityExceeded
+                    raise SupplierCapacityExceeded(supp.index)
 
                 delivered_to_factories[fact_idx] += suppliers_to_factories_paths[path_idx]
                 suppliers_current_capacity[supp_idx] += suppliers_to_factories_paths[path_idx]
@@ -86,9 +74,9 @@ class ConstraintsValidator:
 
                 # * check constraints
                 if factories_current_capacity[fact_idx] + factories_to_warehouses_paths[path_idx] > fact.max_capacity:
-                    raise FactoryCapacityExceeded
+                    raise FactoryCapacityExceeded(fact.index)
                 if delivered_to_factories[fact_idx] - factories_to_warehouses_paths[path_idx] < 0:
-                    raise FactoryOutcomeGreaterThanIncome
+                    raise FactoryOutcomeGreaterThanIncome(fact.index)
 
                 delivered_to_factories[fact_idx] -= factories_to_warehouses_paths[path_idx]
                 delivered_to_warehouses[wareh_idx] += factories_to_warehouses_paths[path_idx]
@@ -107,11 +95,11 @@ class ConstraintsValidator:
 
                 # * check constraints
                 if warhouses_current_capacity[wareh.index-1] + warehouses_to_shops_paths[path_idx] > wareh.max_capacity:
-                    raise WarehouseCapacityExceeded
+                    raise WarehouseCapacityExceeded(wareh.index)
                 if shops_current_capacity[shop.index-1] + warehouses_to_shops_paths[path_idx] > shop.max_capacity:
-                    raise ShopCapacityExceeded
+                    raise ShopCapacityExceeded(shop.index)
                 if delivered_to_warehouses[wareh.index-1] - warehouses_to_shops_paths[path_idx] < 0:
-                    raise WarehouseOutcomeGreaterThanIncome
+                    raise WarehouseOutcomeGreaterThanIncome(wareh.index)
 
                 delivered_to_warehouses[wareh.index-1] -= warehouses_to_shops_paths[path_idx]
                 warhouses_current_capacity[wareh.index-1] += warehouses_to_shops_paths[path_idx]

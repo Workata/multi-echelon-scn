@@ -1,5 +1,9 @@
 from random import random, sample, uniform
-# from typing import List, Tuple
+from typing import List
+from .constraints_validator import (
+    SupplierCapacityExceeded, FactoryCapacityExceeded, WarehouseCapacityExceeded, ShopCapacityExceeded,
+    FactoryOutcomeGreaterThanIncome, WarehouseOutcomeGreaterThanIncome
+)
 
 
 def ensure_bounds(vec, bounds):
@@ -18,9 +22,22 @@ def ensure_bounds(vec, bounds):
 
         # the variable is fine
         if bounds[i][0] <= vec[i] <= bounds[i][1]:
-            vec_new.append(vec[i])
+            vec_new.append(round(vec[i], 2))
 
     return vec_new
+
+# def fix_supplier_capacity_exceeded_error(solution: List[float]) -> List[float]:
+#     pass
+
+
+# def force_bounds(solution: List[float], validator) -> None:
+#     try:
+#         validator.is_valid(solution, raise_err=True)
+#     except SupplierCapacityExceeded:
+#         solution = fix_supplier_capacity_exceeded_error(solution)
+#         force_bounds(solution, validator)
+
+
 
 
 def minimize(cost_func, bounds, popsize, mutate, recombination, maxiter, validator, solution_generator) -> None:
@@ -97,7 +114,7 @@ def minimize(cost_func, bounds, popsize, mutate, recombination, maxiter, validat
         gen_avg = sum(gen_scores) / popsize                         # current generation avg. fitness
         gen_best = min(gen_scores)                                  # fitness of best individual
         gen_sol = population[gen_scores.index(min(gen_scores))]     # solution of best individual
-        if validator.is_valid(gen_sol):
+        if validator.is_valid(gen_sol):     # , raise_err=True
             best_legal_solutions_counter += 1
 
         print ('      > GENERATION AVERAGE:', gen_avg)
