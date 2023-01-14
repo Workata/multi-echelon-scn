@@ -1,6 +1,6 @@
 from .de_simple import minimize
 from models import MscnStructure
-from . import ProfitCalculator, ConstraintsValidator, SolutionGenerator
+from . import ProfitCalculator, ConstraintsValidator, SolutionGenerator, SolutionSplitter
 import random
 
 
@@ -50,14 +50,15 @@ def do_stuff(mscn_structure: MscnStructure):
     bounds = create_bounds(mscn_structure)
     mutate = 0.5
     recombination = 0.7
-    maxiter = 500    # max number of generations, 30
+    maxiter = 3    # max number of generations, 30
 
     profit_calculator = ProfitCalculator(mscn_structure)
     validator = ConstraintsValidator(mscn_structure)
     solution_generator = SolutionGenerator(mscn_structure)
+    solution_splitter = SolutionSplitter(mscn_structure)
 
     def cost_func(solution) -> float:
         # de -> minimize so 1 / profit (we want to maximize profit)
         return 1/profit_calculator.calculate(solution)
 
-    minimize(cost_func, bounds, population_size, mutate, recombination, maxiter, validator, solution_generator)
+    minimize(cost_func, bounds, population_size, mutate, recombination, maxiter, validator, solution_generator, solution_splitter)
