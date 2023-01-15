@@ -5,4 +5,4 @@ class WarehouseOutcomeGreaterThanIncome(Exception):
         self._warehouse_idx = warehouse_idx
 
     def __str__(self) -> str:
-        return f"Warehouse {self._warehouse_idx} outcome is greater than its income"
+        return f"Warehouse {self._warehouse_idx} outcome is greater than its income!"

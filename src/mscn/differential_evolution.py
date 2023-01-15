@@ -1,63 +1,144 @@
-from .de_simple import minimize
-from models import MscnStructure
-from . import ProfitCalculator, ConstraintsValidator, SolutionGenerator
-import random
+from random import random, sample
+from typing import List
+from .constraints_validator import (
+    SupplierCapacityExceeded, FactoryCapacityExceeded, WarehouseCapacityExceeded, ShopCapacityExceeded,
+    FactoryOutcomeGreaterThanIncome, WarehouseOutcomeGreaterThanIncome
+)
+import re
 
 
-def divide_capacity_per_entity(capacity, num_of_entities):
-    containers = [[] for _ in range(num_of_entities)]
-    capacity_units = [1 for _ in range(capacity)]
-    for capacity_unit in capacity_units:
-        random.choice(containers).append(capacity_unit)
-    return [len(container) for container in containers]
+def extract_entity_id_from_err_msg(err_msg: str, pattern: str) -> int:
+    id = int(re.search(pattern, err_msg, re.IGNORECASE).group(1))
+    return id
 
 
-def create_warehouses_shops_bounds(mscn_structure: MscnStructure):
-    warehouses_shops_bounds = []
-    for warehouse in mscn_structure.warehouses:
-        divided_capacity = divide_capacity_per_entity(warehouse.max_capacity, mscn_structure.shops_count)
-        for idx, _ in enumerate(mscn_structure.shops):
-            warehouses_shops_bounds.append((0.0, divided_capacity[idx]))
-    return warehouses_shops_bounds
-
-def create_factories_warehouses_bounds(mscn_structure: MscnStructure):
-    factories_warehouses_bounds = []
-    for factory in mscn_structure.factories:
-        divided_capacity = divide_capacity_per_entity(factory.max_capacity, mscn_structure.warehouses_count)
-        for idx, _ in enumerate(mscn_structure.warehouses):
-            factories_warehouses_bounds.append((0.0, divided_capacity[idx]))
-    return factories_warehouses_bounds
-
-def create_suppliers_factories_bounds(mscn_structure: MscnStructure):
-    suppliers_factories_bounds = []
-    for supplier in mscn_structure.suppliers:
-        divided_capacity = divide_capacity_per_entity(supplier.max_capacity, mscn_structure.factories_count)
-        for idx, _ in enumerate(mscn_structure.factories):
-            suppliers_factories_bounds.append((0.0, divided_capacity[idx]))
-    return suppliers_factories_bounds
+def pre_reduction(solution):
+    new_solution = []
+    for val in solution:
+        val = round(val, 2)
+        new_solution.append(val if val >= 0 else 0)
+    return new_solution
 
 
-def create_bounds(mscn_structure: MscnStructure):
-    bounds = []
-    bounds.extend(create_suppliers_factories_bounds(mscn_structure))
-    bounds.extend(create_factories_warehouses_bounds(mscn_structure))
-    bounds.extend(create_warehouses_shops_bounds(mscn_structure))
-    return bounds
+def force_bounds(solution: List[float], validator, splitter) -> List[float]:
+    solution = pre_reduction(solution)
+
+    while(not validator.is_valid(solution)):
+        try:
+            validator.is_valid(solution, raise_err=True)
+
+        except SupplierCapacityExceeded as err:
+            supplier_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Supplier (.*) capacity')
+            solution = splitter.reduce_concrete_supplier_to_factories_paths(solution, supplier_id)
+
+        except FactoryCapacityExceeded as err:
+            factory_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Factory (.*) capacity')
+            solution = splitter.reduce_concrete_factory_to_warehouses_paths(solution, factory_id)
+
+        except WarehouseCapacityExceeded as err:
+            warehouse_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Warehouse (.*) capacity')
+            solution = splitter.reduce_concrete_warehouse_to_shops_paths(solution, warehouse_id)
+
+        except ShopCapacityExceeded as err:
+            raise ShopCapacityExceeded      # TODO reduce solution per shop
+
+        except FactoryOutcomeGreaterThanIncome as err:
+            factory_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Factory (.*) outcome')
+            solution = splitter.reduce_concrete_factory_to_warehouses_paths(solution, factory_id)
+
+        except WarehouseOutcomeGreaterThanIncome as err:
+            warehouse_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Warehouse (.*) outcome')
+            solution = splitter.reduce_concrete_warehouse_to_shops_paths(solution, warehouse_id)
+
+    return solution
 
 
-def do_stuff(mscn_structure: MscnStructure):
-    population_size =  10 # number of instances
-    bounds = create_bounds(mscn_structure)
-    mutate = 0.5
-    recombination = 0.7
-    maxiter = 500    # max number of generations, 30
 
-    profit_calculator = ProfitCalculator(mscn_structure)
-    validator = ConstraintsValidator(mscn_structure)
-    solution_generator = SolutionGenerator(mscn_structure)
+def minimize(cost_func, popsize, mutate, recombination, maxiter, validator, generator, reducer) -> None:
 
-    def cost_func(solution) -> float:
-        # de -> minimize so 1 / profit (we want to maximize profit)
-        return 1/profit_calculator.calculate(solution)
+    # * starting population (list of solutions) - random based on bounds
+    population = []
+    for _ in range(popsize):
+        population.append(generator.generate())
 
-    minimize(cost_func, bounds, population_size, mutate, recombination, maxiter, validator, solution_generator)
+    #--- SOLVE --------------------------------------------+
+
+    best_legal_solutions_counter = 0
+    best_sol_from_all_gens = population[0]
+    best_sol_score_from_all_gens = 1000000
+
+    # * cycle through each generation (step #2)
+    for i in range(1, maxiter + 1):
+        gen_scores = [] # score keeping
+
+        # * cycle through each individual in the population
+        for j in range(popsize):
+
+            #--- MUTATION (step #3.A) ---------------------+
+
+            # select three random vector index positions [0, popsize), not including current vector (j)
+            candidates = list(range(popsize))
+            candidates.remove(j)
+            random_index = sample(candidates, 3)
+
+            x_1 = population[random_index[0]]
+            x_2 = population[random_index[1]]
+            x_3 = population[random_index[2]]
+                 # target individual
+            # * added to ensure bounds after recombinations
+            population[j] = force_bounds(population[j], validator, reducer)
+            x_t = population[j]
+
+            # subtract x3 from x2, and create a new vector (x_diff)
+            x_diff = [x_2_i - x_3_i for x_2_i, x_3_i in zip(x_2, x_3)]
+
+            # multiply x_diff by the mutation factor (F) and add to x_1
+            v_donor = [x_1_i + mutate * x_diff_i for x_1_i, x_diff_i in zip(x_1, x_diff)]
+            # v_donor = ensure_bounds(v_donor, bounds)
+            v_donor = force_bounds(v_donor, validator, reducer)
+
+            #--- RECOMBINATION (step #3.B) ----------------+
+
+            v_trial = []
+            for k in range(len(x_t)):
+                crossover = random()    # returns x in the internal of [0,1)
+                if crossover <= recombination:
+                    v_trial.append(v_donor[k])
+
+                else:
+                    v_trial.append(x_t[k])
+
+            # * added to ensure bounds after recombinations
+            v_trial = force_bounds(v_trial, validator, reducer)
+
+            #--- GREEDY SELECTION (step #3.C) -------------+
+
+            score_trial  = cost_func(v_trial)
+            score_target = cost_func(x_t)
+
+            if score_trial < score_target:
+                population[j] = v_trial
+                gen_scores.append(score_trial)
+                # print( '   >', score_trial, v_trial)
+
+            else:
+                # print( '   >', score_target, x_t)
+                gen_scores.append(score_target)
+
+        #--- SCORE KEEPING --------------------------------+
+
+        gen_avg = sum(gen_scores) / popsize                         # current generation avg. fitness
+        gen_best = min(gen_scores)                                  # fitness of best individual
+        gen_sol = population[gen_scores.index(min(gen_scores))]     # best individual from generation
+        if validator.is_valid(gen_sol):     # just in case check
+            if best_sol_score_from_all_gens > gen_best:
+                best_sol_score_from_all_gens = gen_best
+                best_sol_from_all_gens = gen_sol
+            best_legal_solutions_counter += 1
+
+        # print ('      > GENERATION AVERAGE:', gen_avg)
+        # print ('      > GENERATION BEST:', gen_best)
+        # print ('         > BEST SOLUTION:', gen_sol,'\n')
+
+    # print(f"Number of legal solutions: {best_legal_solutions_counter}")
+    return best_sol_from_all_gens

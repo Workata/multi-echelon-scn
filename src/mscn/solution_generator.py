@@ -28,8 +28,8 @@ class SolutionGenerator:
 
         return [*suppliers_to_factories_paths, *factories_to_warehouses_paths, *warehouses_shops_paths]
 
-    def _calculate_index_in_double_nested_list(self, outer_list_index: int, outer_list_len: int, inner_list_index: int):
-        return outer_list_index*outer_list_len + inner_list_index
+    def _calculate_index_in_double_nested_list(self, outer_list_index: int, inner_list_len: int, inner_list_index: int):
+        return outer_list_index*inner_list_len + inner_list_index
 
     # * suppliers ---> factories (partial solution)
     def _get_suppliers_to_factories_paths(self) -> Tuple[List[float], List[float]]:
@@ -46,7 +46,7 @@ class SolutionGenerator:
             for fact in factories:
                 outer_idx = supp.index - 1
                 inner_idx = fact.index - 1
-                path_idx = self._calculate_index_in_double_nested_list(outer_idx, len(self._mscn.suppliers), inner_idx)
+                path_idx = self._calculate_index_in_double_nested_list(outer_idx, self._mscn.factories_count, inner_idx)
 
                 supp_fact_transport_value = self._get_supp_fact_transport_value(supp, fact)
                 # * check constraints
@@ -74,7 +74,7 @@ class SolutionGenerator:
             for wareh in warehouses:
                 outer_idx = fact.index - 1
                 inner_idx = wareh.index - 1
-                path_idx = self._calculate_index_in_double_nested_list(outer_idx, len(self._mscn.factories), inner_idx)
+                path_idx = self._calculate_index_in_double_nested_list(outer_idx, self._mscn.warehouses_count, inner_idx)
 
                 fact_wareh_transport_value = self._get_fact_wareh_transport_value(fact, wareh)
                 # * check constraints
@@ -105,7 +105,7 @@ class SolutionGenerator:
             for shop in shops:
                 outer_idx = wareh.index - 1
                 inner_idx = shop.index - 1
-                path_idx = self._calculate_index_in_double_nested_list(outer_idx, len(self._mscn.warehouses), inner_idx)
+                path_idx = self._calculate_index_in_double_nested_list(outer_idx, self._mscn.shops_count, inner_idx)
 
                 wareh_shop_transport_value = self._get_wareh_shop_transport_value(wareh, shop)
                 # * check constraints

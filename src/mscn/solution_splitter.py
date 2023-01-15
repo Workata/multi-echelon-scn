@@ -6,6 +6,7 @@ class SolutionSplitter():
     """
     Divide solution for separate 3 stages
     """
+
     def __init__(self, mscn_structure: MscnStructure):
         self._mscn = mscn_structure
 

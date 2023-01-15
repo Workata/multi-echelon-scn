@@ -34,16 +34,16 @@ class ConstraintsValidator:
             # * warehouse ---> shop
             self._check_warehouses_to_shops_paths(solution, delivered_to_warehouses)
         except InvalidSolutionExceptions as err:
-            print(f"[INFO] Given solution doesn't meet the restrictions! {err}")
+            # print(f"[INFO] Given solution doesn't meet the restrictions: {err}")
             if raise_err:
                 raise
             return False
 
-        print("[INFO] Given solution is valid!")
+        # print("[INFO] Given solution is valid!")
         return True
 
-    def _calculate_index_in_double_nested_list(self, outer_list_index: int, outer_list_len: int, inner_list_index: int):
-        return outer_list_index*outer_list_len + inner_list_index
+    def _calculate_index_in_double_nested_list(self, outer_list_index: int, inner_list_len: int, inner_list_index: int):
+        return outer_list_index*inner_list_len + inner_list_index
 
     def _check_suppliers_to_factories_paths(self, solution: List[float]) -> List[float]:
         suppliers_to_factories_paths: List[float] = self._solution_splitter.get_suppliers_to_factories_partial_solution(solution)
@@ -52,7 +52,7 @@ class ConstraintsValidator:
 
         for supp_idx, supp in enumerate(self._mscn.suppliers):
             for fact_idx, _ in enumerate(self._mscn.factories):
-                path_idx = self._calculate_index_in_double_nested_list(supp_idx, self._mscn.suppliers_count, fact_idx)
+                path_idx = self._calculate_index_in_double_nested_list(supp_idx, self._mscn.factories_count, fact_idx)
 
                 # * check constraints
                 if suppliers_current_capacity[supp_idx] + suppliers_to_factories_paths[path_idx] > supp.max_capacity:
@@ -70,7 +70,7 @@ class ConstraintsValidator:
 
         for fact_idx, fact in enumerate(self._mscn.factories):
             for wareh_idx, _ in enumerate(self._mscn.warehouses):
-                path_idx = self._calculate_index_in_double_nested_list(fact_idx, self._mscn.factories_count, wareh_idx)
+                path_idx = self._calculate_index_in_double_nested_list(fact_idx, self._mscn.warehouses_count, wareh_idx)
 
                 # * check constraints
                 if factories_current_capacity[fact_idx] + factories_to_warehouses_paths[path_idx] > fact.max_capacity:
@@ -91,7 +91,7 @@ class ConstraintsValidator:
 
         for wareh_idx, wareh in enumerate(self._mscn.warehouses):
             for shop_idx, shop in enumerate(self._mscn.shops):
-                path_idx = self._calculate_index_in_double_nested_list(wareh_idx, self._mscn.warehouses_count, shop_idx)
+                path_idx = self._calculate_index_in_double_nested_list(wareh_idx, self._mscn.shops_count, shop_idx)
 
                 # * check constraints
                 if warhouses_current_capacity[wareh.index-1] + warehouses_to_shops_paths[path_idx] > wareh.max_capacity:
