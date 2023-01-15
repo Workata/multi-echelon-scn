@@ -20,7 +20,7 @@ def pre_reduction(solution):
     return new_solution
 
 
-def force_bounds(solution: List[float], validator, splitter) -> List[float]:
+def force_bounds(solution: List[float], validator, reducer) -> List[float]:
     solution = pre_reduction(solution)
 
     while(not validator.is_valid(solution)):
@@ -29,26 +29,26 @@ def force_bounds(solution: List[float], validator, splitter) -> List[float]:
 
         except SupplierCapacityExceeded as err:
             supplier_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Supplier (.*) capacity')
-            solution = splitter.reduce_concrete_supplier_to_factories_paths(solution, supplier_id)
+            solution = reducer.reduce_concrete_supplier_to_factories_paths(solution, supplier_id)
 
         except FactoryCapacityExceeded as err:
             factory_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Factory (.*) capacity')
-            solution = splitter.reduce_concrete_factory_to_warehouses_paths(solution, factory_id)
+            solution = reducer.reduce_concrete_factory_to_warehouses_paths(solution, factory_id)
 
         except WarehouseCapacityExceeded as err:
             warehouse_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Warehouse (.*) capacity')
-            solution = splitter.reduce_concrete_warehouse_to_shops_paths(solution, warehouse_id)
+            solution = reducer.reduce_concrete_warehouse_to_shops_paths(solution, warehouse_id)
 
         except ShopCapacityExceeded as err:
             raise ShopCapacityExceeded      # TODO reduce solution per shop
 
         except FactoryOutcomeGreaterThanIncome as err:
             factory_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Factory (.*) outcome')
-            solution = splitter.reduce_concrete_factory_to_warehouses_paths(solution, factory_id)
+            solution = reducer.reduce_concrete_factory_to_warehouses_paths(solution, factory_id)
 
         except WarehouseOutcomeGreaterThanIncome as err:
             warehouse_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Warehouse (.*) outcome')
-            solution = splitter.reduce_concrete_warehouse_to_shops_paths(solution, warehouse_id)
+            solution = reducer.reduce_concrete_warehouse_to_shops_paths(solution, warehouse_id)
 
     return solution
 
@@ -68,7 +68,7 @@ def minimize(cost_func, popsize, mutate, recombination, maxiter, validator, gene
     best_sol_score_from_all_gens = 1000000
 
     # * cycle through each generation (step #2)
-    for i in range(1, maxiter + 1):
+    for _ in range(1, maxiter + 1):
         gen_scores = [] # score keeping
 
         # * cycle through each individual in the population
