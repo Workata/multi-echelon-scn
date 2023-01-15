@@ -34,12 +34,12 @@ class ConstraintsValidator:
             # * warehouse ---> shop
             self._check_warehouses_to_shops_paths(solution, delivered_to_warehouses)
         except InvalidSolutionExceptions as err:
-            print(f"[INFO] Given solution doesn't meet the restrictions: {err}")
+            # print(f"[INFO] Given solution doesn't meet the restrictions: {err}")
             if raise_err:
                 raise
             return False
 
-        print("[INFO] Given solution is valid!")
+        # print("[INFO] Given solution is valid!")
         return True
 
     def _calculate_index_in_double_nested_list(self, outer_list_index: int, inner_list_len: int, inner_list_index: int):

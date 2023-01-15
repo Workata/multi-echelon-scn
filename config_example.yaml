@@ -1,8 +1,7 @@
 instance_file_path: ./instances/example1.yaml
-conf:
-  name: a
-  example_list_1: [a, b, c]
-  example_list_2:
-    - a
-    - b
-    - c     # dup a
+
+differential_evolution:
+  population_size: 10
+  mutate: 0.5
+  recombination: 0.7
+  num_of_generations: 30

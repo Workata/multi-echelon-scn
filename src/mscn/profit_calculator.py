@@ -20,7 +20,6 @@ class ProfitCalculator:
         startup_costs = self._calculate_startup_costs(solution)
         income = self._calculate_income(solution)
         profit = round(income - startup_costs - tranportation_costs, 2)
-        print(f"Total profit: $$$ {profit} $$$")
         return profit
 
     def _calculate_partial_trans_cost(self, paths, num_of_entities_from, num_of_entities_to, transactions):
@@ -54,7 +53,6 @@ class ProfitCalculator:
             transactions=self._mscn.warehouse_shop_transactions
         )
         total_transportation_cost = round(supp_to_fact_trans_cost + fact_to_wareh_trans_cost + wareh_to_shop_trans_cost, 2)
-        # print(f"Total transportation costs cost: {total_transportation_cost}")
         return total_transportation_cost
 
     def _calculate_partial_startup_costs(self, paths, num_of_entities_from, entities_from, num_of_entities_to):
@@ -90,7 +88,6 @@ class ProfitCalculator:
             entities_from=self._mscn.warehouses
         )
         total_startup_costs = round(suppliers_startup_costs + factories_startup_costs + warehosues_startup_costs, 2)
-        # print(f"Total startup costs: {total_startup_costs}")
         return total_startup_costs
 
     def _calculate_income(self, solution) -> float:
@@ -108,7 +105,4 @@ class ProfitCalculator:
         for idx, shop_amount in enumerate(shops_amount):
             all_shops_income += shop_amount*self._mscn.shops[idx].income_per_product
         all_shops_income = round(all_shops_income, 2)
-        # print(f"Total income: {all_shops_income}")
         return all_shops_income
-
-
