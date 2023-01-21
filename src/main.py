@@ -20,11 +20,17 @@ solution_reducer = SolutionReducer(mscn_structure, solution_splitter)
 
 print("\n--------- Single random solution ---------------\n")
 
-random_solution = solution_generator.generate()
-is_random_solution_valid = validator.is_valid(solution=random_solution)
-print(f"Is random solution valid? {is_random_solution_valid}")
-random_solution_profit = profit_calculator.calculate(solution=random_solution)
-print(f"Single random solution: {random_solution} with {random_solution_profit}$ profit!")
+best_random_solution_profit = 0.0
+for i in range(0, config['random_N_repeats']):
+    random_solution = solution_generator.generate()
+    is_random_solution_valid = validator.is_valid(solution=random_solution)
+    print(f"Is random solution valid? {is_random_solution_valid}")
+    random_solution_profit = profit_calculator.calculate(solution=random_solution)
+    print(f"Single random solution: {random_solution} with {random_solution_profit}$ profit!")
+    if best_random_solution_profit < random_solution_profit:
+        best_random_solution_profit = random_solution_profit
+        best_random_solution = random_solution
+print(f"\nBest random solution: {best_random_solution} with {best_random_solution_profit}$ profit!")
 
 
 print("\n--------- Solution using differential evolution ---------------\n")
