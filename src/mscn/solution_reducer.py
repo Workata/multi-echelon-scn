@@ -37,11 +37,30 @@ class SolutionReducer:
         warehouses_to_shops[starting_idx:ending_idx] = self._reduce_sublist(warehouses_to_shops[starting_idx:ending_idx])
         return self._replace_warehouses_to_shops_paths(solution, warehouses_to_shops)
 
+    def reduce_warehouses_to_concrete_shop_paths(self, solution: List[float], shop_id: int) -> List[float]:
+        warehouses_to_shops = self._splitter.get_warehouses_to_shops_partial_solution(solution)
+        concrete_shop_idx = shop_id - 1
+        for wareh_idx in range(self._mscn.warehouses_count):
+            for shop_idx in range(self._mscn.shops_count):
+                if concrete_shop_idx != shop_idx:
+                    continue
+                path_idx = self._calculate_index_in_double_nested_list(wareh_idx, self._mscn.shops_count, shop_idx)
+                warehouses_to_shops[path_idx] = self._decrement_value(warehouses_to_shops[path_idx])
+
+        return self._replace_warehouses_to_shops_paths(solution, warehouses_to_shops)
+
+
+    def _calculate_index_in_double_nested_list(self, outer_list_index: int, inner_list_len: int, inner_list_index: int):
+        return outer_list_index*inner_list_len + inner_list_index
+
     def _reduce_sublist(self, sublist):
         reduced_sublist = []
         for x in sublist:
-            reduced_sublist.append(0.0 if x - self.DECREMENTOR < 0 else round(x - self.DECREMENTOR, 2))
+            reduced_sublist.append(self._decrement_value(x))
         return reduced_sublist
+
+    def _decrement_value(self, value: float) -> float:
+        return 0.0 if value - self.DECREMENTOR < 0 else round(value - self.DECREMENTOR, 2)
 
     def _replace_suppliers_to_factories_paths(self, solution: List[float], suppliers_to_factories_paths: List[float]) -> List[float]:
         solution[0:self._mscn.supp_fact_paths_count] = suppliers_to_factories_paths

@@ -1,9 +1,13 @@
 instance_file_path: ./instances/example1.yaml
 
+# add input from file for (population_size, mutate, recombination, tolerance)
 differential_evolution:
   population_size: 10
   mutate: 0.5
   recombination: 0.7
-  num_of_generations: 30
+  num_of_generations: 30      # not used right now but we will keep it as an option
+  tolerance: 200
+  max_calculation_time: 60    # seconds
+
 
 random_N_repeats: 5
