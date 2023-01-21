@@ -2,11 +2,11 @@ from loaders import ConfigLoader, InstanceLoader
 from mscn import ProfitCalculator, SolutionGenerator, ConstraintsValidator, MscnSolver, SolutionSplitter, SolutionReducer
 import timeit
 
-CONFIG_FILE_PATH = './config.yaml'
-MAX_CALCULATION_TIME = 600
 
+CONFIG_FILE_PATH = './config.yaml'
 config = ConfigLoader.load(CONFIG_FILE_PATH)
-# print(config)
+
+MAX_CALCULATION_TIME = config['differential_evolution']['max_calculation_time']
 
 insance_loader = InstanceLoader()
 mscn_structure = insance_loader.load(config['instance_file_path'])

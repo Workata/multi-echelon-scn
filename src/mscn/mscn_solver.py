@@ -1,5 +1,5 @@
 from .differential_evolution import minimize
-
+import math
 
 class MscnSolver:
 
@@ -13,13 +13,16 @@ class MscnSolver:
         self._validator = validator
         self._generator = generator
         self._reducer = reducer
-        self.time_start = time_start  
-        self.max_calculation_time = max_calculation_time     
+        self.time_start = time_start
+        self.max_calculation_time = max_calculation_time
     def solve(self):
 
         def cost_func(solution) -> float:
-            # * de -> minimize so 1 / profit (we want to maximize profit)
-            return 1/self._profit_calculator.calculate(solution)
+            """ de -> minimize so 1 / profit (we want to maximize profit) """
+            profit = self._profit_calculator.calculate(solution)
+            if profit == 0.0:
+                return math.inf
+            return 1/profit
 
         best_solution = minimize(
             cost_func, self.POPULATION_SIZE, self.MUTATE_PROBABILITY, self.RECOMBINATION_PROBABILITY,

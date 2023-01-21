@@ -7,6 +7,7 @@ from .constraints_validator import (
 import re
 import timeit
 
+
 def extract_entity_id_from_err_msg(err_msg: str, pattern: str) -> int:
     id = int(re.search(pattern, err_msg, re.IGNORECASE).group(1))
     return id
@@ -40,7 +41,8 @@ def force_bounds(solution: List[float], validator, reducer) -> List[float]:
             solution = reducer.reduce_concrete_warehouse_to_shops_paths(solution, warehouse_id)
 
         except ShopCapacityExceeded as err:
-            raise ShopCapacityExceeded      # TODO reduce solution per shop
+            shop_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Shop (.*) capacity')
+            solution = reducer.reduce_warehouses_to_concrete_shop_paths(solution, shop_id)
 
         except FactoryOutcomeGreaterThanIncome as err:
             factory_id = extract_entity_id_from_err_msg(err_msg=str(err), pattern='Factory (.*) outcome')
