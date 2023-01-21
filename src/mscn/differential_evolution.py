@@ -5,7 +5,7 @@ from .constraints_validator import (
     FactoryOutcomeGreaterThanIncome, WarehouseOutcomeGreaterThanIncome
 )
 import re
-
+import timeit
 
 def extract_entity_id_from_err_msg(err_msg: str, pattern: str) -> int:
     id = int(re.search(pattern, err_msg, re.IGNORECASE).group(1))
@@ -54,8 +54,7 @@ def force_bounds(solution: List[float], validator, reducer) -> List[float]:
 
 
 
-def minimize(cost_func, popsize, mutate, recombination, maxiter, validator, generator, reducer) -> None:
-
+def minimize(cost_func, popsize, mutate, recombination, validator, generator, reducer,tolerance, start_time, max_time) -> None:
     # * starting population (list of solutions) - random based on bounds
     population = []
     for _ in range(popsize):
@@ -66,11 +65,13 @@ def minimize(cost_func, popsize, mutate, recombination, maxiter, validator, gene
     best_legal_solutions_counter = 0
     best_sol_from_all_gens = population[0]
     best_sol_score_from_all_gens = 1000000
-
+    best_gen_scores_history = []
+    EARLY_STOP = False
+    IS_TIME_UP = False
     # * cycle through each generation (step #2)
-    for _ in range(1, maxiter + 1):
-        gen_scores = [] # score keeping
+    while EARLY_STOP is not True and IS_TIME_UP is not True:
 
+        gen_scores = [] # score keeping
         # * cycle through each individual in the population
         for j in range(popsize):
 
@@ -130,12 +131,20 @@ def minimize(cost_func, popsize, mutate, recombination, maxiter, validator, gene
         gen_avg = sum(gen_scores) / popsize                         # current generation avg. fitness
         gen_best = min(gen_scores)                                  # fitness of best individual
         gen_sol = population[gen_scores.index(min(gen_scores))]     # best individual from generation
+        best_gen_scores_history.append(gen_best)
         if validator.is_valid(gen_sol):     # just in case check
             if best_sol_score_from_all_gens > gen_best:
                 best_sol_score_from_all_gens = gen_best
                 best_sol_from_all_gens = gen_sol
             best_legal_solutions_counter += 1
 
+        #--- EARLY STOPPING ----------------+
+        if len(best_gen_scores_history) > tolerance:
+            best_gen_scores_history.pop(0)
+            if min(best_gen_scores_history) > best_sol_score_from_all_gens or len(set(best_gen_scores_history)) == 1:
+                EARLY_STOP = True
+        if timeit.default_timer() - start_time >= max_time:
+            IS_TIME_UP = True
         # print ('      > GENERATION AVERAGE:', gen_avg)
         # print ('      > GENERATION BEST:', gen_best)
         # print ('         > BEST SOLUTION:', gen_sol,'\n')
