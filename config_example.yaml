@@ -5,3 +5,5 @@ differential_evolution:
   mutate: 0.5
   recombination: 0.7
   num_of_generations: 30
+
+random_N_repeats: 5
