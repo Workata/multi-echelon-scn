@@ -1,4 +1,4 @@
-from .differential_evolution import minimize
+from .differential_evolution import DifferentialEvolution
 import math
 
 class MscnSolver:
@@ -13,8 +13,9 @@ class MscnSolver:
         self._validator = validator
         self._generator = generator
         self._reducer = reducer
-        self.time_start = time_start
-        self.max_calculation_time = max_calculation_time
+        self._time_start = time_start
+        self._max_calculation_time = max_calculation_time
+
     def solve(self):
 
         def cost_func(solution) -> float:
@@ -24,8 +25,9 @@ class MscnSolver:
                 return math.inf
             return 1/profit
 
-        best_solution = minimize(
+        de = DifferentialEvolution(self._generator, self._validator, self._reducer)
+        best_solution = de.minimize(
             cost_func, self.POPULATION_SIZE, self.MUTATE_PROBABILITY, self.RECOMBINATION_PROBABILITY,
-            self._validator, self._generator, self._reducer, self.TOLERANCE, self.time_start, self.max_calculation_time
+            self.TOLERANCE, self._time_start, self._max_calculation_time
         )
         return best_solution
