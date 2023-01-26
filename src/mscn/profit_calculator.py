@@ -22,11 +22,14 @@ class ProfitCalculator:
         profit = round(income - startup_costs - tranportation_costs, 2)
         return profit
 
+    def _calculate_index_in_double_nested_list(self, outer_list_index: int, inner_list_len: int, inner_list_index: int):
+        return outer_list_index*inner_list_len + inner_list_index
+
     def _calculate_partial_trans_cost(self, paths, num_of_entities_from, num_of_entities_to, transactions):
         total_cost = 0.0
         for from_idx in range(num_of_entities_from):
             for to_idx in range(num_of_entities_to):
-                idx = from_idx*num_of_entities_from + to_idx
+                idx = self._calculate_index_in_double_nested_list(from_idx, num_of_entities_to, to_idx)
                 transport_amount = paths[idx]
                 transport_cost = transactions[idx].cost
                 total_cost += (transport_amount * transport_cost)
@@ -59,7 +62,7 @@ class ProfitCalculator:
         startup_costs = 0.0
         for from_idx in range(num_of_entities_from):
             for to_idx in range(num_of_entities_to):
-                idx = from_idx*num_of_entities_from + to_idx
+                idx = self._calculate_index_in_double_nested_list(from_idx, num_of_entities_to, to_idx)
                 if paths[idx] > 0:
                     startup_costs += entities_from[from_idx].startup_cost
                     break
@@ -90,14 +93,16 @@ class ProfitCalculator:
         total_startup_costs = round(suppliers_startup_costs + factories_startup_costs + warehosues_startup_costs, 2)
         return total_startup_costs
 
+
+
     def _calculate_income(self, solution) -> float:
         """P"""
-        wareh_shops_paths=self._solution_splitter.get_warehouses_to_shops_partial_solution(solution)
+        wareh_shops_paths = self._solution_splitter.get_warehouses_to_shops_partial_solution(solution)
         shops_amount: List[float] = [0.0 for _ in range(self._mscn.shops_count)]
 
         for wareh_idx in range(self._mscn.warehouses_count):
             for shop_idx in range(self._mscn.shops_count):
-                idx = wareh_idx*self._mscn.warehouses_count + shop_idx
+                idx = self._calculate_index_in_double_nested_list(wareh_idx, self._mscn.shops_count, shop_idx)
                 delivered_amount = wareh_shops_paths[idx]
                 shops_amount[shop_idx] += delivered_amount
 
